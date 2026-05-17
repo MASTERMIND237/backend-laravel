@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { vehiculesApi } from '../api/vehicules.api';
 import toast from 'react-hot-toast';
+import { getApiErrorMessage } from '../utils/api';
 
 export const useVehicules = (filters = {}) => {
   const queryClient = useQueryClient();
@@ -23,7 +24,10 @@ export const useVehicules = (filters = {}) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vehicules'] });
       toast.success('Véhicule ajouté avec succès');
-    }
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, "Erreur lors de l'enregistrement du véhicule"));
+    },
   });
 
   return {

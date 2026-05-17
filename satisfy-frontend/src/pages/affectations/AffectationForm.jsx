@@ -1,51 +1,133 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
+import { useDrivers } from '../../hooks/useDrivers';
+import { useVehicules } from '../../hooks/useVehicules';
+import { useRoutes } from '../../hooks/useRoutes';
+import { useAffectations } from '../../hooks/useAffectations';
 
 const AffectationForm = () => {
-  const { register, handleSubmit } = useForm();
+  const navigate = useNavigate();
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    defaultValues: {
+      nombre_passagers: 0,
+    },
+  });
 
-  const onSubmit = (data) => console.log(data);
+  const { drivers } = useDrivers({ statut: 'actif' });
+  const { vehicules } = useVehicules({ statut: 'disponible' });
+  const routesQuery = useRoutes({ statut: 'active' });
+  const { createAffectation, isCreating } = useAffectations();
+
+  const onSubmit = (data) => {
+    createAffectation(
+      {
+        driver_id: Number(data.driver_id),
+        vehicle_id: Number(data.vehicle_id),
+        route_id: Number(data.route_id),
+        date_depart: data.date_depart,
+        heure_depart: data.heure_depart,
+        date_arrivee_prevue: data.date_arrivee_prevue || null,
+        heure_arrivee_prevue: data.heure_arrivee_prevue || null,
+        nombre_passagers: Number(data.nombre_passagers || 0),
+        observations: data.observations || null,
+      },
+      {
+        onSuccess: () => navigate('/affectations'),
+      },
+    );
+  };
+
+  const routes = routesQuery.data?.data || [];
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="mx-auto max-w-2xl">
       <Card title="Nouvelle Affectation">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-cyprus font-medium text-sm ml-1">Véhicule</label>
-              <select {...register('vehicule_id')} className="bg-white border-2 border-sand-dark rounded-xl px-4 py-2.5 outline-none focus:border-cyprus">
-                <option value="">Sélectionner un véhicule...</option>
-                <option value="1">LT-882-CI (Disponible)</option>
-                <option value="2">CE-441-AF (Disponible)</option>
-              </select>
-            </div>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <SelectField
+              label="Véhicule"
+              error={errors.vehicle_id?.message}
+              registration={register('vehicle_id', { required: true })}
+              options={vehicules.map((vehicule) => ({
+                value: vehicule.id,
+                label: vehicule.libelle,
+              }))}
+            />
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-cyprus font-medium text-sm ml-1">Chauffeur</label>
-              <select {...register('chauffeur_id')} className="bg-white border-2 border-sand-dark rounded-xl px-4 py-2.5 outline-none focus:border-cyprus">
-                <option value="">Sélectionner un chauffeur...</option>
-                <option value="1">Jean Dupont</option>
-                <option value="2">Marie Fouda</option>
-              </select>
-            </div>
+            <SelectField
+              label="Chauffeur"
+              error={errors.driver_id?.message}
+              registration={register('driver_id', { required: true })}
+              options={drivers.map((driver) => ({
+                value: driver.id,
+                label: driver.user?.nom_complet || `Chauffeur #${driver.id}`,
+              }))}
+            />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Input label="Date de début" type="date" {...register('date_debut')} />
-            <Input label="Date de fin prévue" type="date" {...register('date_fin')} />
+          <SelectField
+            label="Route"
+            error={errors.route_id?.message}
+            registration={register('route_id', { required: true })}
+            options={routes.map((route) => ({
+              value: route.id,
+              label: route.trajet,
+            }))}
+          />
+
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <Input label="Date de départ" type="date" error={errors.date_depart?.message} {...register('date_depart', { required: true })} />
+            <Input label="Heure de départ" type="time" error={errors.heure_depart?.message} {...register('heure_depart', { required: true })} />
           </div>
 
-          <div className="flex justify-end gap-3 pt-6 border-t border-sand-dark">
-            <Button variant="ghost">Annuler</Button>
-            <Button variant="primary" type="submit">Confirmer l'affectation</Button>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <Input label="Date arrivée prévue" type="date" {...register('date_arrivee_prevue')} />
+            <Input label="Heure arrivée prévue" type="time" {...register('heure_arrivee_prevue')} />
+          </div>
+
+          <Input
+            label="Nombre de passagers"
+            type="number"
+            {...register('nombre_passagers')}
+          />
+
+          <div className="flex flex-col gap-1.5">
+            <label className="ml-1 text-sm font-medium text-cyprus">Observations</label>
+            <textarea
+              {...register('observations')}
+              rows={4}
+              className="rounded-xl border-2 border-sand-dark bg-white px-4 py-2.5 outline-none focus:border-cyprus"
+            />
+          </div>
+
+          <div className="flex justify-end gap-3 border-t border-sand-dark pt-6">
+            <Button variant="ghost" type="button" onClick={() => navigate('/affectations')}>Annuler</Button>
+            <Button variant="primary" type="submit" isLoading={isCreating}>Confirmer l'affectation</Button>
           </div>
         </form>
       </Card>
     </div>
   );
 };
+
+const SelectField = ({ label, registration, options, error }) => (
+  <div className="flex flex-col gap-1.5">
+    <label className="ml-1 text-sm font-medium text-cyprus">{label}</label>
+    <select
+      {...registration}
+      className="rounded-xl border-2 border-sand-dark bg-white px-4 py-2.5 outline-none focus:border-cyprus"
+    >
+      <option value="">Sélectionner...</option>
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>{option.label}</option>
+      ))}
+    </select>
+    {error ? <span className="ml-1 mt-1 text-xs text-red-500">{error}</span> : null}
+  </div>
+);
 
 export default AffectationForm;

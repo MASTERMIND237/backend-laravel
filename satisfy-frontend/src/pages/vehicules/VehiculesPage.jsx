@@ -4,14 +4,20 @@ import { PageHeader } from '../../components/layout/PageHeader';
 import { Button } from '../../components/ui/Button';
 import { Table } from '../../components/ui/Table';
 import { Badge } from '../../components/ui/Badge';
-import { Input } from '../../components/ui/Input';
 import { useVehicules } from '../../hooks/useVehicules';
 import { formatters } from '../../utils/formatters';
 import { Link } from 'react-router-dom';
+import { Spinner } from '../../components/ui/Spinner';
 
 const VehiculesPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const { vehicules, isLoading } = useVehicules();
+  const { vehicules, isLoading } = useVehicules(
+    searchTerm.trim() ? { search: searchTerm } : {},
+  );
+
+  if (isLoading) {
+    return <div className="h-full flex items-center justify-center"><Spinner size="lg" /></div>;
+  }
 
   const getStatusVariant = (status) => {
     if (status === 'en_route') return 'success';
@@ -42,6 +48,7 @@ const VehiculesPage = () => {
             type="text"
             placeholder="Rechercher par immatriculation ou modèle..."
             className="w-full bg-sand-light border-none rounded-xl py-2.5 pl-10 pr-4 outline-none focus:ring-2 focus:ring-kiwi/50 text-sm"
+            value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
@@ -57,17 +64,17 @@ const VehiculesPage = () => {
             <td className="px-6 py-4">
               <div className="flex flex-col">
                 <span className="font-bold text-cyprus">{v.immatriculation}</span>
-                <span className="text-xs text-cyprus/60">{v.modele}</span>
+                <span className="text-xs text-cyprus/60">{v.libelle}</span>
               </div>
             </td>
-            <td className="px-6 py-4 text-sm capitalize">{v.type}</td>
+            <td className="px-6 py-4 text-sm capitalize">{v.type_vehicule}</td>
             <td className="px-6 py-4">
               <Badge variant={getStatusVariant(v.statut)}>
                 {formatters.status(v.statut)}
               </Badge>
             </td>
             <td className="px-6 py-4 text-sm font-medium">
-              {v.consommation_moyenne} L/100km
+              {v.kilometrage_actuel}
             </td>
             <td className="px-6 py-4">
               <div className="flex gap-2">

@@ -1,8 +1,10 @@
 import api from './axios';
 
 export const rapportsApi = {
-  getStatsGenerales: () => api.get('/rapports/stats'),
-  getConsommationCarburant: (params) => api.get('/rapports/carburant', { params }),
-  getActiviteVehicule: (id, params) => api.get(`/rapports/vehicule/${id}`, { params }),
-  exportPDF: (type) => api.get(`/rapports/export/${type}`, { responseType: 'blob' }),
+  getAll: (params) => api.get('/rapports', { params }),
+  getById: (id) => api.get(`/rapports/${id}`),
+  create: (data) => api.post('/rapports', data),
+  validate: (id) => api.patch(`/rapports/${id}/valider`),
+  reject: (id, data) => api.patch(`/rapports/${id}/rejeter`, data),
+  getStats: (params) => api.get('/rapports/statistiques', { params }),
 };

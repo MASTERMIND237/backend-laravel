@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast';
 
 // Layout & Auth
 import { AppLayout } from './components/layout/AppLayout';
+import { DriverLayout } from './components/layout/DriverLayout';
 import { useAuthStore } from './store/authStore';
 
 // Pages
@@ -17,14 +18,43 @@ import DriversPage from './pages/drivers/DriversPage';
 import DriverDetail from './pages/drivers/DriverDetail';
 import DriverForm from './pages/drivers/DriverForm';
 import AffectationsPage from './pages/affectations/AffectationsPage';
+import AffectationForm from './pages/affectations/AffectationForm';
 import PlanningPage from './pages/affectations/PlanningPage';
 import MaintenancesPage from './pages/maintenances/MaintenancesPage';
+import MaintenanceForm from './pages/maintenances/MaintenanceForm';
 import RapportsPage from './pages/rapports/RapportsPage';
+import DriverHomePage from './pages/chauffeur/DriverHomePage';
+import DriverMissionsPage from './pages/chauffeur/DriverMissionsPage';
+import DriverProfilePage from './pages/chauffeur/DriverProfilePage';
 
-// Gardien de route
-const ProtectedRoute = ({ children }) => {
+const getDefaultPathForRole = (role) => {
+  if (role === 'chauffeur') {
+    return '/chauffeur';
+  }
+
+  return '/dashboard';
+};
+
+const ProtectedRoute = ({ children, roles = [] }) => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  return isAuthenticated ? children : <Navigate to="/login" replace />;
+  const user = useAuthStore((state) => state.user);
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (roles.length && !roles.includes(user?.role)) {
+    return <Navigate to={getDefaultPathForRole(user?.role)} replace />;
+  }
+
+  return children;
+};
+
+const RoleAwareRedirect = () => {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const user = useAuthStore((state) => state.user);
+
+  return <Navigate to={isAuthenticated ? getDefaultPathForRole(user?.role) : '/login'} replace />;
 };
 
 function App() {
@@ -38,8 +68,15 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
-        {/* Routes Protégées (Layout Commun) */}
-        <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+        {/* Routes Protégées Gestionnaire/Admin */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute roles={['admin', 'gestionnaire']}>
+              <AppLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
           
@@ -53,18 +90,35 @@ function App() {
           <Route path="drivers" element={<DriversPage />} />
           <Route path="drivers/nouveau" element={<DriverForm />} />
           <Route path="drivers/:id" element={<DriverDetail />} />
+          <Route path="drivers/edit/:id" element={<DriverForm />} />
 
           {/* Module Affectations */}
           <Route path="affectations" element={<AffectationsPage />} />
+          <Route path="affectations/nouveau" element={<AffectationForm />} />
           <Route path="affectations/planning" element={<PlanningPage />} />
 
           {/* Autres */}
           <Route path="maintenances" element={<MaintenancesPage />} />
+          <Route path="maintenances/nouveau" element={<MaintenanceForm />} />
           <Route path="rapports" element={<RapportsPage />} />
         </Route>
 
+        {/* Espace Chauffeur */}
+        <Route
+          path="/chauffeur"
+          element={
+            <ProtectedRoute roles={['chauffeur']}>
+              <DriverLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<DriverHomePage />} />
+          <Route path="missions" element={<DriverMissionsPage />} />
+          <Route path="profil" element={<DriverProfilePage />} />
+        </Route>
+
         {/* 404 Redirect */}
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<RoleAwareRedirect />} />
       </Routes>
     </BrowserRouter>
   );

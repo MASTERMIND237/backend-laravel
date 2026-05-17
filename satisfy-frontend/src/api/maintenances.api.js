@@ -6,5 +6,5 @@ export const maintenancesApi = {
   create: (data) => api.post('/maintenances', data),
   update: (id, data) => api.put(`/maintenances/${id}`, data),
   delete: (id) => api.delete(`/maintenances/${id}`),
-  complete: (id) => api.patch(`/maintenances/${id}/terminer`), // Marquer comme effectué
+  getStats: (params) => api.get('/maintenances/stats', { params }),
 };

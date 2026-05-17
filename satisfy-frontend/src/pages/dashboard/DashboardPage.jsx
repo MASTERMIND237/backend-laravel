@@ -43,7 +43,7 @@ const DashboardPage = () => {
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <PageHeader 
-        title={`Bonjour, ${user?.name || 'Gestionnaire'}`} 
+        title={`Bonjour, ${user?.nom_complet || user?.prenom || 'Gestionnaire'}`} 
         subtitle="Voici l'état actuel de votre flotte pour aujourd'hui."
       />
 

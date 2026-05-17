@@ -3,9 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\TableauController;
-use App\Http\Controllers\AuthController;
-//use App\Http\Controllers\AuthController2;
-use App\Http\Middleware\CheckAuth;
+use App\Http\Controllers\AuthController2 as AuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,7 +15,7 @@ use App\Http\Middleware\CheckAuth;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
-
+Route::view('/', 'welcome');
 Route::resource('produits', ProductController::class);
 
 Route::get('liste_tab',[TableauController::class,'afficheTableau']);
@@ -40,7 +38,9 @@ Route::middleware('check.auth')->group(function () {
 //logout
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-
+Route::get('/satisfy/{any?}', function () {
+    return file_get_contents(public_path('satisfy/index.html'));
+})->where('any', '.*');
 
 
 // //devoir madame Belinga

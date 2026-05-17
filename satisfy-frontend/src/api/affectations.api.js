@@ -6,5 +6,8 @@ export const affectationsApi = {
   create: (data) => api.post('/affectations', data),
   update: (id, data) => api.put(`/affectations/${id}`, data),
   delete: (id) => api.delete(`/affectations/${id}`),
-  getPlanning: () => api.get('/affectations/planning'), // Pour la vue calendrier/planning
+  getPlanning: (params) => api.get('/affectations/planning', { params }),
+  start: (id) => api.patch(`/affectations/${id}/demarrer`),
+  finish: (id) => api.patch(`/affectations/${id}/terminer`),
+  cancel: (id, data) => api.patch(`/affectations/${id}/annuler`, data),
 };

@@ -1,24 +1,29 @@
-import React from 'react';
-import { Plus, Calendar, MapPin, Clock, ArrowRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { Calendar, Plus } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { Button } from '../../components/ui/Button';
 import { Table } from '../../components/ui/Table';
 import { Badge } from '../../components/ui/Badge';
+import { Spinner } from '../../components/ui/Spinner';
+import { useAffectations } from '../../hooks/useAffectations';
 import { formatters } from '../../utils/formatters';
-import { Link } from 'react-router-dom';
 
 const AffectationsPage = () => {
-  // Les données proviendraient de useAffectations()
-  const affectations = [
-    { id: 1, vehicule: 'LT-882-CI', chauffeur: 'Jean Dupont', debut: '2026-03-30', fin: '2026-04-05', statut: 'en_cours' },
-    { id: 2, vehicule: 'CE-441-AF', chauffeur: 'Marie Fouda', debut: '2026-03-28', fin: '2026-03-29', statut: 'termine' },
-  ];
+  const [statut, setStatut] = useState('');
+  const { affectations, isLoading, cancelAffectation, isCancelling } = useAffectations(
+    statut ? { statut } : {},
+  );
+
+  if (isLoading) {
+    return <div className="flex h-full items-center justify-center"><Spinner size="lg" /></div>;
+  }
 
   return (
     <div className="space-y-6">
-      <PageHeader 
-        title="Affectations" 
-        subtitle="Suivi des attributions chauffeurs-véhicules."
+      <PageHeader
+        title="Affectations"
+        subtitle="Suivi opérationnel des missions chauffeurs et véhicules."
         action={
           <div className="flex gap-3">
             <Link to="/affectations/planning">
@@ -35,34 +40,62 @@ const AffectationsPage = () => {
         }
       />
 
-      <Table headers={['Mission', 'Véhicule / Chauffeur', 'Période', 'Statut', 'Actions']}>
-        {affectations.map((aff) => (
-          <tr key={aff.id} className="hover:bg-sand-light transition-colors">
-            <td className="px-6 py-4 font-bold text-cyprus">#AFF-{aff.id}</td>
-            <td className="px-6 py-4">
-              <div className="flex flex-col">
-                <span className="text-sm font-bold text-cyprus">{aff.vehicule}</span>
-                <span className="text-xs text-cyprus/60">{aff.chauffeur}</span>
-              </div>
+      <div className="max-w-xs rounded-2xl border border-sand-dark bg-white p-4">
+        <label className="mb-2 block text-sm font-medium text-cyprus">Filtrer par statut</label>
+        <select
+          value={statut}
+          onChange={(e) => setStatut(e.target.value)}
+          className="w-full rounded-xl border-2 border-sand-dark px-4 py-2.5 outline-none focus:border-cyprus"
+        >
+          <option value="">Toutes</option>
+          <option value="planifiee">Planifiées</option>
+          <option value="en_cours">En cours</option>
+          <option value="terminee">Terminées</option>
+          <option value="annulee">Annulées</option>
+        </select>
+      </div>
+
+      <Table headers={['Mission', 'Chauffeur', 'Véhicule', 'Route', 'Départ', 'Statut', 'Actions']}>
+        {affectations.map((affectation) => (
+          <tr key={affectation.id} className="hover:bg-sand-light transition-colors">
+            <td className="px-6 py-4 font-bold text-cyprus">#AFF-{affectation.id}</td>
+            <td className="px-6 py-4 text-sm text-cyprus">{affectation.driver?.user?.nom_complet || 'N/A'}</td>
+            <td className="px-6 py-4 text-sm text-cyprus">{affectation.vehicule?.libelle || 'N/A'}</td>
+            <td className="px-6 py-4 text-sm text-cyprus">{affectation.route?.trajet || 'N/A'}</td>
+            <td className="px-6 py-4 text-sm text-cyprus">
+              {affectation.date_depart} {affectation.heure_depart ? `à ${affectation.heure_depart}` : ''}
             </td>
             <td className="px-6 py-4">
-              <div className="flex items-center gap-2 text-xs text-cyprus/70 font-medium">
-                {formatters.date(aff.debut)} <ArrowRight size={12}/> {formatters.date(aff.fin)}
-              </div>
-            </td>
-            <td className="px-6 py-4">
-              <Badge variant={aff.statut === 'en_cours' ? 'success' : 'neutral'}>
-                {aff.statut === 'en_cours' ? 'En cours' : 'Terminé'}
+              <Badge variant={statusVariant(affectation.statut)}>
+                {formatters.status(affectation.statut)}
               </Badge>
             </td>
             <td className="px-6 py-4">
-               <Button variant="ghost" className="text-xs py-1">Détails</Button>
+              {['planifiee', 'en_cours'].includes(affectation.statut) ? (
+                <Button
+                  variant="ghost"
+                  className="px-0 py-0 text-xs"
+                  isLoading={isCancelling}
+                  onClick={() => cancelAffectation({ id: affectation.id, raison: 'Annulation depuis le back-office' })}
+                >
+                  Annuler
+                </Button>
+              ) : (
+                <span className="text-xs text-cyprus/50">Aucune action</span>
+              )}
             </td>
           </tr>
         ))}
       </Table>
     </div>
   );
+};
+
+const statusVariant = (status) => {
+  if (status === 'en_cours') return 'success';
+  if (status === 'annulee') return 'danger';
+  if (status === 'terminee') return 'info';
+  return 'warning';
 };
 
 export default AffectationsPage;

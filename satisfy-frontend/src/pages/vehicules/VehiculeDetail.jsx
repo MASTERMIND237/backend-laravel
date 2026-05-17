@@ -18,7 +18,7 @@ const VehiculeDetail = () => {
       <div className="flex justify-between items-start">
         <div>
           <h2 className="text-4xl font-syne font-extrabold text-cyprus tracking-tight">LT-882-CI</h2>
-          <p className="text-xl text-cyprus/60 font-sans">Toyota Hilux 2024</p>
+          <p className="text-xl text-cyprus/60 font-sans">Fiche véhicule #{id}</p>
         </div>
         <Badge variant="success">En Route</Badge>
       </div>

@@ -1,8 +1,11 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { authApi } from '../api/auth.api';
 import { useAuthStore } from '../store/authStore';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { getApiErrorMessage } from '../utils/api';
+
+const getHomeRoute = (role) => (role === 'chauffeur' ? '/chauffeur' : '/dashboard');
 
 export const useAuth = () => {
   const navigate = useNavigate();
@@ -10,18 +13,31 @@ export const useAuth = () => {
 
   const loginMutation = useMutation({
     mutationFn: (credentials) => authApi.login(credentials),
-    onSuccess: (response) => {
-      console.debug('useAuth login onSuccess response:', response);
-      const user = response.user;
+    onSuccess: async (response) => {
       const token = response.token;
-      setLogin(user, token);
-      toast.success(`Bienvenue, ${user?.nom_complet || user?.name || 'utilisateur'}`);
-      navigate('/dashboard');
+
+      if (!token) {
+        console.error('Login succeeded without usable token:', response);
+        setLogout();
+        toast.error("Connexion incomplète: aucun token d'accès n'a été reçu.");
+        return;
+      }
+
+      try {
+        const meResponse = await authApi.getMe(token);
+        const user = meResponse.user || response.user;
+        setLogin(user, token);
+        toast.success(`Bienvenue, ${user?.nom_complet || user?.prenom || 'utilisateur'}`);
+        navigate(getHomeRoute(user?.role), { replace: true });
+      } catch (error) {
+        console.error('Post-login /auth/me failed:', error);
+        setLogout();
+        toast.error(getApiErrorMessage(error, "Connexion établie, mais impossible de charger votre profil."));
+      }
     },
     onError: (error) => {
-      // Log complet pour debug (voir console navigateur)
       console.error('Login error:', error);
-      toast.error(error.response?.data?.message || error.message || 'Identifiants invalides');
+      toast.error(getApiErrorMessage(error, 'Identifiants invalides'));
     },
   });
 
@@ -36,17 +52,42 @@ export const useAuth = () => {
 
   const registerMutation = useMutation({
     mutationFn: (payload) => authApi.register(payload),
-    onSuccess: (response) => {
-      console.debug('useAuth register onSuccess response:', response);
-      const user = response.user;
+    onSuccess: async (response) => {
       const token = response.token;
-      setLogin(user, token);
-      toast.success('Inscription réussie. Bienvenue !');
-      navigate('/dashboard');
+
+      if (!token) {
+        console.error('Register succeeded without usable token:', response);
+        setLogout();
+        toast.error("Inscription créée, mais aucun token de connexion n'a été reçu.");
+        return;
+      }
+
+      try {
+        const meResponse = await authApi.getMe(token);
+        const user = meResponse.user || response.user;
+        setLogin(user, token);
+        toast.success(`Inscription réussie. Bienvenue ${user?.nom_complet || user?.prenom || ''}`.trim());
+        navigate(getHomeRoute(user?.role), { replace: true });
+      } catch (error) {
+        console.error('Post-register /auth/me failed:', error);
+        setLogout();
+        toast.error(getApiErrorMessage(error, "Compte créé, mais impossible de charger votre profil."));
+      }
     },
     onError: (error) => {
-      console.error('Register error:', error);
-      toast.error(error.response?.data?.message || error.message || 'Erreur lors de l\'inscription');
+      // Log the full response body when available to inspect validation errors (422)
+      console.error('Register error response:', error.response?.data || error);
+
+      // If there are field errors from Laravel, show them individually
+      const fieldErrors = error?.response?.data?.errors;
+      if (fieldErrors && typeof fieldErrors === 'object') {
+        Object.values(fieldErrors).flat().forEach((msg) => {
+          if (typeof msg === 'string' && msg.trim()) toast.error(msg);
+        });
+        return;
+      }
+
+      toast.error(getApiErrorMessage(error, "Erreur lors de l'inscription"));
     }
   });
 

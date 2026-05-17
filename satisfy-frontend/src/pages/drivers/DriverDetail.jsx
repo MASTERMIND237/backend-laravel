@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ChevronLeft, FileText, Calendar, Award, PhoneCall } from 'lucide-react';
+import { ChevronLeft, FileText, Calendar, Award, Phone, PhoneCall } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
@@ -21,7 +21,7 @@ const DriverDetail = () => {
           </div>
           <div>
             <h2 className="text-3xl font-syne font-extrabold text-cyprus">Jean Dupont</h2>
-            <p className="text-cyprus/60">Chauffeur Senior • Yaoundé, CM</p>
+            <p className="text-cyprus/60">Fiche chauffeur #{id} • Yaoundé, CM</p>
           </div>
         </div>
         <div className="flex gap-3">

@@ -8,12 +8,14 @@ export const useAuthStore = create((set) => ({
 
   // Action pour se connecter
   login: (userData, token) => {
-    localStorage.setItem('token', token);
+    if (token) {
+      localStorage.setItem('token', token);
+    }
     localStorage.setItem('user', JSON.stringify(userData));
     set({ 
       user: userData, 
-      token: token, 
-      isAuthenticated: true 
+      token: token || null, 
+      isAuthenticated: !!token 
     });
   },
 

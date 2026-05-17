@@ -1,35 +1,45 @@
 import api from './axios';
 
+const extractToken = (payload) =>
+  payload?.token ||
+  payload?.data?.token ||
+  payload?.meta?.token ||
+  payload?.original?.token ||
+  null;
+
 // Normalise les réponses d'auth pour toujours exposer { user, token }
 export const authApi = {
   login: (credentials) =>
-    api.post('/auth/login', credentials).then((res) => {
+    api.post('/auth/login', { device: 'web', ...credentials }).then((res) => {
       const payload = {
         user: res.data?.data || res.data?.user || res.data,
-        token: res.data?.token,
+        token: extractToken(res.data),
         raw: res,
       };
-      console.debug('authApi.login -> normalized payload:', payload);
       return payload;
     }),
 
   register: (payload) =>
-    api.post('/auth/register', payload).then((res) => {
+    api.post('/auth/register', { device: 'web', ...payload }).then((res) => {
       const p = {
         user: res.data?.data || res.data?.user || res.data,
-        token: res.data?.token,
+        token: extractToken(res.data),
         raw: res,
       };
-      console.debug('authApi.register -> normalized payload:', p);
       return p;
     }),
 
   logout: () => api.post('/auth/logout').then((res) => res.data),
 
-  getMe: () =>
-    api.get('/auth/me').then((res) => {
+  getMe: (token) =>
+    api.get('/auth/me', token ? {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    } : undefined).then((res) => {
       const p = { user: res.data?.data || res.data?.user || res.data, raw: res };
-      console.debug('authApi.getMe -> normalized payload:', p);
       return p;
     }),
+
+  getDriverDashboard: () => api.get('/drivers/dashboard'),
 };

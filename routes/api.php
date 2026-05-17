@@ -174,5 +174,6 @@ Route::prefix('satisfy')->group(function () {
         Route::post('/documents',                    [DocumentController::class, 'store']);    // Upload document
         Route::get('/routes',                        [RouteController::class, 'index']);       // Liste des routes (publique)
         Route::get('/routes/villes',                 [RouteController::class, 'villes']);      // Liste des villes
+
     });
 });

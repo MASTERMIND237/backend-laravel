@@ -6,10 +6,17 @@ import { Table } from '../../components/ui/Table';
 import { Badge } from '../../components/ui/Badge';
 import { useDrivers } from '../../hooks/useDrivers';
 import { Link } from 'react-router-dom';
+import { Spinner } from '../../components/ui/Spinner';
 
 const DriversPage = () => {
-  const { drivers, isLoading, deleteDriver } = useDrivers();
   const [search, setSearch] = useState('');
+  const { drivers, isLoading, deleteDriver } = useDrivers(
+    search.trim() ? { search } : {},
+  );
+
+  if (isLoading) {
+    return <div className="h-full flex items-center justify-center"><Spinner size="lg" /></div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -32,6 +39,7 @@ const DriversPage = () => {
             type="text"
             placeholder="Rechercher un nom ou un téléphone..."
             className="w-full bg-sand-light border-none rounded-xl py-2.5 pl-10 pr-4 outline-none text-sm"
+            value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
@@ -43,23 +51,23 @@ const DriversPage = () => {
             <td className="px-6 py-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-sand-dark rounded-full flex items-center justify-center text-cyprus font-bold">
-                  {driver.nom.charAt(0)}
+                  {driver.user?.prenom?.charAt(0) || driver.user?.nom?.charAt(0) || 'C'}
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-bold text-cyprus">{driver.nom}</span>
+                  <span className="font-bold text-cyprus">{driver.user?.nom_complet || 'Chauffeur'}</span>
                   <span className="text-xs text-cyprus/60">ID: {driver.id}</span>
                 </div>
               </div>
             </td>
             <td className="px-6 py-4">
               <div className="flex items-center gap-2 text-sm text-cyprus/70">
-                <Phone size={14} /> {driver.telephone}
+                <Phone size={14} /> {driver.user?.telephone || driver.user?.email || 'Non renseigné'}
               </div>
             </td>
-            <td className="px-6 py-4 text-sm font-mono">{driver.permis_numero}</td>
+            <td className="px-6 py-4 text-sm font-mono">{driver.numero_permis}</td>
             <td className="px-6 py-4">
-              <Badge variant={driver.disponible ? 'success' : 'neutral'}>
-                {driver.disponible ? 'Disponible' : 'En mission'}
+              <Badge variant={driver.statut === 'actif' ? 'success' : 'neutral'}>
+                {driver.statut}
               </Badge>
             </td>
             <td className="px-6 py-4">

@@ -26,11 +26,11 @@ export const TopBar = () => {
         
         <div className="flex items-center gap-3 pl-6 border-l border-sand-dark">
           <div className="text-right">
-            <p className="text-sm font-bold text-cyprus leading-none">{user?.name || 'Administrateur'}</p>
+            <p className="text-sm font-bold text-cyprus leading-none">{user?.nom_complet || user?.prenom || 'Administrateur'}</p>
             <p className="text-xs text-cyprus/60 mt-1">{user?.role || 'Gestion Fleet'}</p>
           </div>
           <div className="w-10 h-10 bg-cyprus text-kiwi rounded-full flex items-center justify-center font-bold border-2 border-white shadow-sm">
-            {user?.name?.charAt(0) || 'A'}
+            {user?.prenom?.charAt(0) || user?.nom?.charAt(0) || 'A'}
           </div>
         </div>
       </div>
