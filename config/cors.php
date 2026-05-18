@@ -22,7 +22,7 @@ return [
 
         'allowed_origins' => [
         env('FRONTEND_URL', 'http://localhost:5173'),
-        'http://satisfy-frontend.kappa.vercel.app', // URL de production du frontend
+        'http://satisfy-frontend-kappa.vercel.app', // URL de production du frontend
         'http://localhost:3000',            // React dev server
         'http://localhost:5173',            // Vite dev server
         'http://127.0.0.1:3000',
