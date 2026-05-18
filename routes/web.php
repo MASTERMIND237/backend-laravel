@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\TableauController;
+use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\AuthController2 as AuthController;
 
 /*
@@ -41,6 +42,13 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/satisfy/{any?}', function () {
     return file_get_contents(public_path('satisfy/index.html'));
 })->where('any', '.*');
+
+
+Route::get('/init-db', function () {
+    Artisan::call('migrate:fresh --seed --force');
+
+    return nl2br(Artisan::output());
+});
 
 
 // //devoir madame Belinga
