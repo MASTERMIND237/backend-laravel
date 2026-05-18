@@ -21,7 +21,7 @@ return [
     'allowed_methods' => ['*'],
 
         'allowed_origins' => [
-        env('FRONTEND_URL', 'http://localhost:5173'),
+        // env('FRONTEND_URL', 'http://localhost:5173'),
         'http://satisfy-frontend-pi.vercel.app', // URL de production du frontend
         'http://localhost:3000',            // React dev server
         'http://localhost:5173',            // Vite dev server
