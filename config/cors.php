@@ -22,7 +22,7 @@ return [
 
         'allowed_origins' => [
         // env('FRONTEND_URL', 'http://localhost:5173'),
-        'http://satisfy-frontend-pi.vercel.app', // URL de production du frontend
+        'https://satisfy-frontend-pi.vercel.app', // URL de production du frontend
         'http://localhost:3000',            // React dev server
         'http://localhost:5173',            // Vite dev server
         'http://127.0.0.1:3000',
@@ -44,6 +44,6 @@ return [
 
     'max_age' => 0,
 
-    'supports_credentials' => true,
+    'supports_credentials' => false,
 
 ];
