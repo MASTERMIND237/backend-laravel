@@ -16,11 +16,11 @@ return new class extends Migration
     public function up(): void
     {
         // Table pour les tokens de réinitialisation de mot de passe
-        Schema::create('password_reset_tokens', function (Blueprint $table) {
-            $table->string('email')->primary();
-            $table->string('token');
-            $table->timestamp('created_at')->nullable();
-        });
+        // Schema::create('password_reset_tokens', function (Blueprint $table) {
+        //     $table->string('email')->primary();
+        //     $table->string('token');
+        //     $table->timestamp('created_at')->nullable();
+        // });
 
         // Table pour les tokens API Sanctum
         // Chaque connexion depuis le frontend ou la PWA génère un token ici
