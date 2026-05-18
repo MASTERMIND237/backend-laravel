@@ -12,6 +12,8 @@ use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\VehiculeController;
 use Illuminate\Support\Facades\Route;
 
+use Illuminate\Http\Request;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes — Plateforme Satisfy (VERSION FINALE)
@@ -176,4 +178,11 @@ Route::prefix('satisfy')->group(function () {
         Route::get('/routes/villes',                 [RouteController::class, 'villes']);      // Liste des villes
 
     });
+
+
+
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    })->middleware('auth:sanctum');
+    
 });
